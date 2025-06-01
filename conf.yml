@@ -1,0 +1,8 @@
+token:
+  "xxxx"
+cid:
+  "xxx"
+model_file_parent_dir:
+  "./ComfyUI/models/"
+api:
+  base_url: "https://api2.liblib.art/api/www"
