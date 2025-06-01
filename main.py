@@ -1,12 +1,16 @@
+# -*- coding: utf-8 -*-
+
 import requests
 import json
 import time
 from urllib.parse import urlparse, parse_qs
 import os
 import yaml
+import subprocess
 
 from ModelType import ModelType
 from BaseModelType import BaseModelType
+
 
 # 这里修改为自己的token，通过浏览器获取
 # 读取 YAML 配置文件
@@ -15,19 +19,13 @@ def read_config(file_path='conf.yml'):
         config = yaml.safe_load(file)
     return config
 
+
 # 获取 TOKEN
-config = read_config()
-TOKEN = config.get('token')
-CID = config.get('cid')
-
-if TOKEN:
-    print(f"成功读取 TOKEN : {TOKEN}")
-else:
-    print("未找到 TOKEN，请检查 conf.yml 文件")
-
-
+TOKEN = None
+CID = None
+autoDownload = None
 # 模型存放父级路径，这可以修改，也可以修改ModelType中文件路径
-model_file_parent_dir = './ComfyUI/models/'
+model_file_parent_dir = None
 baseUrl = 'https://api2.liblib.art/api/www'
 # 搜索模型列表
 searchModels = "/model/search"
@@ -152,6 +150,7 @@ def get_recommend_model(versionIds):
     # 打印双引号json
     # print(json.dumps(res.json(), ensure_ascii=False))
     return res.json()
+
 
 # 获取下载地址
 def get_download_url(model_uuid, model_url):
@@ -289,6 +288,9 @@ def get_direct_link(model_uuid):
             print(f'# {model_name}({model_version_name})  模型链接（https://www.liblib.art/modelinfo/{model_uuid}）')
             print(
                 f'!wget -c "{download_url}" -O "{model_file_parent_dir}{ModelType(model_type).file_path()}/{model_name}({model_version_name}){url_suffix}"')
+            if autoDownload:
+                download_model_start(download_url,
+                                     f"{model_file_parent_dir}{ModelType(model_type).file_path()}/{model_name}({model_version_name}){url_suffix}")
             # print("================================================================")
         else:
             print("下载校验失败")
@@ -297,7 +299,49 @@ def get_direct_link(model_uuid):
     time.sleep(1)
 
 
+# 下载文件
+def download_model_start(download_url, model_path):
+    print(f"正在下载文件：{download_url} 至 {model_path}")
+    # 判断文件是否已存在
+    if os.path.exists(model_path):
+        print(f"⚠️ 文件已存在，跳过下载: {model_path}")
+        return
+
+    download_cmd = [
+        'wget', '-c',
+        download_url,
+        '-O',
+        f"{model_path}"
+    ]
+
+    print("正在执行下载命令：")
+    print(' '.join(download_cmd))
+
+    try:
+        result = subprocess.run(download_cmd, check=True)
+        print("✅ 下载完成")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ 下载失败: {e}")
+
+
+# 初始化参数
+def init():
+    global TOKEN, CID, autoDownload, model_file_parent_dir
+    # 获取 TOKEN
+    config = read_config()
+    TOKEN = config.get('token')
+    CID = config.get('cid')
+    model_file_parent_dir = config.get('model_file_parent_dir')
+    autoDownload = config.get('auto_download_models')
+
+    if TOKEN:
+        print(f"成功读取 TOKEN : {TOKEN}")
+    else:
+        print("未找到 TOKEN，请检查 conf.yml 文件")
+
+
 if __name__ == '__main__':
+    init()
     # 接收输入
     print("请输入模型链接：")
     print(
