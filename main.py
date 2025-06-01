@@ -291,6 +291,7 @@ def get_direct_link(model_uuid):
             if autoDownload:
                 download_model_start(download_url,
                                      f"{model_file_parent_dir}{ModelType(model_type).file_path()}/{model_name}({model_version_name}){url_suffix}")
+                save_model_info(model_info )
             # print("================================================================")
         else:
             print("下载校验失败")
@@ -326,6 +327,18 @@ def download_model_start(download_url, model_path):
     except subprocess.CalledProcessError as e:
         print(f"❌ 下载失败: {e}")
 
+# 保存模型原始数据
+def save_model_info(model_info):
+    if model_info:
+        model_name = model_info["name"]
+        model_type = model_info["modelType"]
+        # 这里默认获取最新版本
+        model_version_name = model_info["versions"][0]["name"]
+        info_file_json = f"{model_file_parent_dir}{ModelType(model_type).file_path()}/{model_name}({model_version_name}).json"
+        # 将文本写入文件
+        with open(info_file_json, 'w', encoding='utf-8') as f:
+            json.dump(model_info, f, ensure_ascii=False, indent=4)
+            print(f"已保存模型信息至 {info_file_json}")
 
 # 初始化参数
 def init():
