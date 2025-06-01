@@ -254,6 +254,8 @@ def get_direct_link(model_uuid):
         model_type = model_info["modelType"]
         # 这里默认获取最新版本
         model_version_name = model_info["versions"][0]["name"]
+        if model_info["versions"][0]["attachment"] is  None:
+            return None
         model_version_url = model_info["versions"][0]["attachment"]["modelSource"]
         model_version_desc = model_info["versions"][0]["versionDesc"]
         model_version_id = model_info["versions"][0]["id"]
@@ -284,15 +286,18 @@ def get_direct_link(model_uuid):
             #     f'模型介绍 ：{model_version_desc}\r\n'
             #     f'推荐参数 ：{model_version_versionIntro}\r\n'
             # )
-            url_suffix = get_url_suffix(download_url)
-            print(f'# {model_name}({model_version_name})  模型链接（https://www.liblib.art/modelinfo/{model_uuid}）')
-            print(
-                f'!wget -c "{download_url}" -O "{model_file_parent_dir}{ModelType(model_type).file_path()}/{model_name}({model_version_name}){url_suffix}"')
-            if autoDownload:
-                download_model_start(download_url,
-                                     f"{model_file_parent_dir}{ModelType(model_type).file_path()}/{model_name}({model_version_name}){url_suffix}")
-                save_model_info(model_info )
-            # print("================================================================")
+            if download_url:
+                url_suffix = get_url_suffix(download_url)
+                model_path = f"{model_file_parent_dir}{ModelType(model_type).file_path()}/{model_name}({model_version_name}){url_suffix}"
+                print(f'# {model_name}({model_version_name})  模型链接（https://www.liblib.art/modelinfo/{model_uuid}）')
+                print(f'!wget -c "{download_url}" -O "{model_path}"')
+                if autoDownload:
+                    download_model_start(download_url, model_path)
+                    save_model_info(model_info)
+                    download_model_cover(model_info)  # 新增调用
+                # print("================================================================")
+            else:
+                print(f"获取模型({ model_name})下载地址失败，请检查当前账号是否有下载权限")
         else:
             print("下载校验失败")
     else:
@@ -327,6 +332,7 @@ def download_model_start(download_url, model_path):
     except subprocess.CalledProcessError as e:
         print(f"❌ 下载失败: {e}")
 
+
 # 保存模型原始数据
 def save_model_info(model_info):
     if model_info:
@@ -335,10 +341,44 @@ def save_model_info(model_info):
         # 这里默认获取最新版本
         model_version_name = model_info["versions"][0]["name"]
         info_file_json = f"{model_file_parent_dir}{ModelType(model_type).file_path()}/{model_name}({model_version_name}).json"
+        # 判断文件是否已存在
+        if os.path.exists(info_file_json):
+            print(f"⚠️ 文件已存在，跳过下载: {info_file_json}")
+            return
         # 将文本写入文件
         with open(info_file_json, 'w', encoding='utf-8') as f:
             json.dump(model_info, f, ensure_ascii=False, indent=4)
             print(f"已保存模型信息至 {info_file_json}")
+
+
+# 下载封面图片
+def download_model_cover(model_info):
+    if model_info:
+        model_name = model_info["name"]
+        model_type = model_info["modelType"]
+        # 这里默认获取最新版本
+        model_version_name = model_info["versions"][0]["name"]
+        cover_url = model_info["versions"][0]["imageGroup"]["coverUrl"]
+        img_suffix = get_url_suffix(cover_url)
+        file_path = f"{model_file_parent_dir}{ModelType(model_type).file_path()}/{model_name}({model_version_name}){img_suffix}"
+        # 判断文件是否已存在
+        if os.path.exists(file_path):
+            print(f"⚠️ 文件已存在，跳过下载: {file_path}")
+            return
+        # 创建目录（如果不存在）
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        # 下载图片
+        try:
+            response = requests.get(cover_url, stream=True)
+            response.raise_for_status()  # 检查请求状态
+            with open(file_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=1024):
+                    if chunk:
+                        f.write(chunk)
+            print(f"✅ 封面图片已成功下载至: {file_path}")
+        except requests.exceptions.RequestException as e:
+            print(f"❌ 下载封面图片失败: {e}")
+
 
 # 初始化参数
 def init():
