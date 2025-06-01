@@ -106,6 +106,8 @@ def search_model(keyword, types=[], models=[], vipType=[]):
 
 # 获取模型详情
 def get_model_info(model_id):
+    if model_id is None:
+        return None
     '''
     :param model_id:
     :return:
