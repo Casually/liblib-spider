@@ -302,6 +302,9 @@ def get_direct_link(model_uuid):
 # 下载文件
 def download_model_start(download_url, model_path):
     print(f"正在下载文件：{download_url} 至 {model_path}")
+
+    os.makedirs(os.path.dirname(model_path), exist_ok=True)
+
     # 判断文件是否已存在
     if os.path.exists(model_path):
         print(f"⚠️ 文件已存在，跳过下载: {model_path}")
