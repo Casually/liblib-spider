@@ -73,6 +73,7 @@ def search_model(keyword, types=[], models=[], vipType=[]):
         2 仅会员可下载
     :return:
     '''
+    print("全量获取数据中，请等待...")
 
     bodys = {
         'keyword': keyword,
@@ -91,6 +92,7 @@ def search_model(keyword, types=[], models=[], vipType=[]):
     datas = []
 
     while True:
+        print("正在获取第 " + str(bodys["page"]) + " 页数据...")
         time.sleep(1)
         params = {
             'timestamp': time.time()
@@ -106,7 +108,7 @@ def search_model(keyword, types=[], models=[], vipType=[]):
             # 将数组存放到 数组中
             for item in json_data["data"]["data"]:
                 datas.append(item['uuid'])
-
+    print( "获取数据完成，共有 " + str(len(datas)) + " 条数据")
     return datas
 
 
@@ -173,6 +175,11 @@ def get_download_url(model_uuid, model_url):
     # print(json.dumps(res.json(), ensure_ascii=False))
     if res.json()["code"] == 0:
         return res.json()["data"]
+    else:
+        if res.json()["msg"] == '下载超过限制':
+            print( "下载超过限制，请更换账号TOKEN后重新下载")
+            exit()
+        return res.json()["msg"]
     return None
 
 
@@ -465,7 +472,6 @@ def search_model_download_menu():
             continue
         uuids = search_model("情趣")
         for uuid in uuids:
-            print(uuid)
             get_direct_link(uuid)
 
 
