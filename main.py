@@ -73,15 +73,12 @@ def search_model(keyword, types=[], models=[], vipType=[]):
         2 仅会员可下载
     :return:
     '''
-    params = {
-        'timestamp': time.time()
-    }
 
     bodys = {
         'keyword': keyword,
         'periodTime': ["all"],
         'page': 1,
-        'pageSize': 2,
+        'pageSize': 50,
         'types': types,
         'models': models,
         'vipType': vipType,
@@ -91,17 +88,26 @@ def search_model(keyword, types=[], models=[], vipType=[]):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36'
     }
 
+    datas = []
+
     while True:
         time.sleep(1)
-        response = requests.post(baseUrl + searchModels, json=bodys, headers=headers)
+        params = {
+            'timestamp': time.time()
+        }
+        response = requests.post(baseUrl + searchModels, params=params, json=bodys, headers=headers)
         json_data = response.json()
         bodys["page"] = bodys["page"] + 1
         # print(json.dumps(json_data, ensure_ascii=False))
-        break
         if not json_data["data"]["hasMore"]:
             break
+        else:
+            # print(json.dumps(json_data.json(), ensure_ascii=False))
+            # 将数组存放到 数组中
+            for item in json_data["data"]["data"]:
+                datas.append(item['uuid'])
 
-    return ''
+    return datas
 
 
 # 获取模型详情
@@ -248,6 +254,8 @@ def get_compatible_model(versionIds=[]):
 
 # 获取模型直连地址
 def get_direct_link(model_uuid):
+    if model_uuid is None:
+        return None
     model_info = get_model_info(model_uuid)
     if model_info:
         model_id = model_info["id"]
@@ -256,27 +264,28 @@ def get_direct_link(model_uuid):
         model_type = model_info["modelType"]
         # 这里默认获取最新版本
         model_version_name = model_info["versions"][0]["name"]
-        if model_info["versions"][0]["attachment"] is  None:
+        if model_info["versions"][0]["attachment"] is None:
             return None
         model_version_url = model_info["versions"][0]["attachment"]["modelSource"]
         model_version_desc = model_info["versions"][0]["versionDesc"]
         model_version_id = model_info["versions"][0]["id"]
         model_version_uuid = model_info["versions"][0]["uuid"]
-        model_version_versionIntro = json.loads(model_info["versions"][0]["versionIntro"])
-        if "ckpt" in model_version_versionIntro:
-            base_model = model_version_versionIntro['ckpt']
-            compatible_models = get_compatible_model(base_model)
-            if compatible_models:
-                # print("配套模型：")
-                for compatible_model in compatible_models:
-                    # print(
-                    #     f'模型id ： {compatible_model["id"]}\r\n'
-                    #     f'模型UUID ： {compatible_model["modelUuid"]}\r\n'
-                    #     f'模型名称 ： {compatible_model["modelName"]}\r\n'
-                    #     f'模型类型 ： {BaseModelType(compatible_model["baseType"]).desc()}\r\n'
-                    #     f'模型版本名称 ：{compatible_model["modelVersionName"]}\r\n'
-                    # )
-                    get_direct_link(compatible_model['modelUuid'])
+        if model_info["versions"][0]["versionIntro"]:
+            model_version_versionIntro = json.loads(model_info["versions"][0]["versionIntro"])
+            if "ckpt" in model_version_versionIntro:
+                base_model = model_version_versionIntro['ckpt']
+                compatible_models = get_compatible_model(base_model)
+                if compatible_models:
+                    # print("配套模型：")
+                    for compatible_model in compatible_models:
+                        # print(
+                        #     f'模型id ： {compatible_model["id"]}\r\n'
+                        #     f'模型UUID ： {compatible_model["modelUuid"]}\r\n'
+                        #     f'模型名称 ： {compatible_model["modelName"]}\r\n'
+                        #     f'模型类型 ： {BaseModelType(compatible_model["baseType"]).desc()}\r\n'
+                        #     f'模型版本名称 ：{compatible_model["modelVersionName"]}\r\n'
+                        # )
+                        get_direct_link(compatible_model['modelUuid'])
 
         check_download = get_check_download(model_id, model_name, model_version_uuid, model_version_url, model_uuid)
         if check_download:
@@ -299,7 +308,7 @@ def get_direct_link(model_uuid):
                     download_model_cover(model_info)  # 新增调用
                 # print("================================================================")
             else:
-                print(f"获取模型({ model_name})下载地址失败，请检查当前账号是否有下载权限")
+                print(f"获取模型({model_name})下载地址失败，请检查当前账号是否有下载权限")
         else:
             print("下载校验失败")
     else:
@@ -398,14 +407,34 @@ def init():
         print("未找到 TOKEN，请检查 conf.yml 文件")
 
 
-if __name__ == '__main__':
-    init()
+# 菜单
+def menu():
+    print("===============================")
+    print("0. 返回菜单")
+    print("1. 搜索自动模型")
+    print("2. 通过链接下载模型")
+    print("q. 退出")
+    print("===============================")
+    choice = input("请选择：")
+    if choice == "0":
+        menu()
+    elif choice == "1":
+        print("请输入关键字：")
+        search_model_download_menu()
+    elif choice == "2":
+        download_model_menu()
+
+
+def download_model_menu():
     # 接收输入
     print("请输入模型链接：")
     print(
         "样例：https://www.liblib.art/modelinfo/c4dbdde32eef41618b514b126aedb853?from=search&versionUuid=9248fef8f5074c3eb5f43d5f28838bef")
     while True:
-        url = input("粘贴在这里（输入 q 退出程序）：")
+        url = input("粘贴在这里（输入 q 退出程序，输入 0 返回菜单）：")
+        if url == "0":
+            menu()
+            break
         if url == "q":
             exit()
             break
@@ -416,5 +445,30 @@ if __name__ == '__main__':
         if model_uuid is None:
             print("无法获取模型编号")
             continue
-        # search_model("情趣")
         get_direct_link(model_uuid)
+
+
+def search_model_download_menu():
+    # 接收输入
+    print("请输入搜索关键字：")
+    print("样例：情趣")
+    while True:
+        order = input("关键字（输入 q 退出程序，输入 0 返回菜单）：")
+        if order == "0":
+            menu()
+            break
+        if order == "q":
+            exit()
+            break
+        if order == "":
+            print("请输入搜索关键字：")
+            continue
+        uuids = search_model("情趣")
+        for uuid in uuids:
+            print(uuid)
+            get_direct_link(uuid)
+
+
+if __name__ == '__main__':
+    init()
+    menu()
