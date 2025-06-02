@@ -16,7 +16,7 @@
 
 ```angular2html
 pip install --upgrade pip
-pip install -r requirements.txt -i  https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 ```
 ## 主要功能
 

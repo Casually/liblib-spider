@@ -364,6 +364,15 @@ def wget_download_model(download_url, model_path):
 
 # 下载文件
 def download_model_file(download_url, model_path):
+    logger.info(f"正在下载文件：{download_url} 至 {model_path}")
+
+    os.makedirs(os.path.dirname(model_path), exist_ok=True)
+
+    # 判断文件是否已存在
+    if os.path.exists(model_path):
+        logger.warning(f"⚠️ 文件已存在，跳过下载: {model_path}")
+        return
+    
     downloader = DownloadUtil(max_retries=3, retry_wait=5)
     # downloader.download_file(download_url, model_path)
     downloader.download_file_multi_threaded(download_url, model_path, num_threads=download_three_number)
