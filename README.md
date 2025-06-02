@@ -49,6 +49,10 @@ pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web
     * 自动登录
     * 通过 `URL` 获取
     * 通过 `cookie` 获取
+- [ ] 增加定时抓取功能
+    * 解决每天下载次数限制，隔天自动下载
+- [ ] 增加多账号管理
+    * 账号自动切换
 
 ## 软件展示
 
@@ -56,7 +60,7 @@ pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web
 
 ## 使用
 
-1. 修改 `conf.yml` 中的 `token` 和 `cid`
+1. 修改 `conf.yml` 配置信息
 2. 启动 `python3 main.py`
 3. 输入浏览器中的地址，即可返回模型下载地址
 
