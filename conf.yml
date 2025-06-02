@@ -4,3 +4,7 @@ model_file_parent_dir: "./ComfyUI/models/"
 api:
   base_url: "https://api2.liblib.art/api/www"
 auto_download_models: False
+save_search_list: False
+db:
+  path: "/db"
+  name: "db.sqlite3"
