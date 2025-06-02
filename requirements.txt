@@ -1,2 +1,5 @@
 # pyyaml 工具
- pyyaml>=6.0.2
+ pyyaml==6.0.2
+ tqdm==4.67.1
+ tenacity==9.1.2
+ colorlog==6.9.0

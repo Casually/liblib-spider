@@ -1,0 +1,30 @@
+user:
+  # 用户token，从浏览器获取
+  token: "xxxxx"
+  # 用户id，从浏览器获取
+  cid: "xxxx"
+api:
+  base_url: "https://api2.liblib.art/api/www"
+db:
+  # 数据库文件路径
+  path: "xxx/db"
+  # 数据库文件名
+  name: "db.sqlite3"
+download:
+  # Model存放父级路径
+  model_parent_path: "xxx"
+  #model_parent_path:  "./ComfyUI/models/"
+  # 文件下载线程数
+  three_number: 10
+  # 最大重试次数
+  max_retries: 3
+  # 模型下载超时时间
+  timeout: 60
+  # 模型下载重试间隔时间
+  retry_interval: 5
+  # 模型下载重试间隔时间
+  retry_wait: 5
+  # 自动下载模型
+  auto_download: True
+  # 保存搜索列表
+  save_search_list: False
