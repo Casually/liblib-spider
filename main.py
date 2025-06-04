@@ -512,7 +512,7 @@ def search_model_download_menu():
         if order == "":
             print("请输入搜索关键字：")
             continue
-        uuids = search_model("情趣")
+        uuids = search_model(order)
         for uuid in uuids:
             get_direct_link(uuid)
 
